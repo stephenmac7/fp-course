@@ -64,8 +64,7 @@ data MaybeListZipper a =
 -- >>> (+1) <$> (zipper [3,2,1] 4 [5,6,7])
 -- [4,3,2] >5< [6,7,8]
 instance Functor ListZipper where
-  f <$> (ListZipper l x r) =
-    ListZipper (f <$> l) (f x) (f <$> r)
+  f <$> (ListZipper l x r) = ListZipper (f <$> l) (f x) (f <$> r)
 
 -- | Implement the `Functor` instance for `MaybeListZipper`.
 --
@@ -73,7 +72,7 @@ instance Functor ListZipper where
 -- [4,3,2] >5< [6,7,8]
 instance Functor MaybeListZipper where
   _ <$> IsNotZ = IsNotZ
-  f <$> IsZ (z) = IsZ $ f <$> z
+  f <$> IsZ z = IsZ $ f <$> z
 
 -- | Convert the given zipper back to a list.
 --
@@ -123,7 +122,7 @@ toOptional ::
   MaybeListZipper a
   -> Optional (ListZipper a)
 toOptional IsNotZ = Empty
-toOptional (IsZ z) = Full z
+toOptional (IsZ l) = Full l
 
 zipper ::
   [a]
@@ -196,7 +195,7 @@ setFocus ::
   a
   -> ListZipper a
   -> ListZipper a
-setFocus a (ListZipper l _ r) = ListZipper l a r
+setFocus x = withFocus (const x)
 
 -- A flipped infix alias for `setFocus`. This allows:
 --
@@ -262,9 +261,9 @@ findLeft ::
 findLeft p (ListZipper l x r) =
   let (n, y) = break p l
    in case y of
-      Nil -> IsNotZ
-      (y' :. ys) -> IsZ $ ListZipper ys y' (reverse n ++ x :. r)
-    
+        Nil -> IsNotZ
+        (y':.ys) -> IsZ $ ListZipper ys y' (prependRev n (x :. r))
+
 -- | Seek to the right for a location matching a predicate, excluding the
 -- focus.
 --
@@ -289,8 +288,8 @@ findRight ::
   -> MaybeListZipper a
 findRight p (ListZipper l x r) =
   case break p r of
-       (_, Nil) -> IsNotZ
-       (n, y :. ys) -> IsZ $ ListZipper (reverse n ++ x :. l) y ys
+    (_, Nil) -> IsNotZ
+    (n, y:.ys) -> IsZ $ ListZipper (prependRev n (x:.l)) y ys
 
 -- | Move the zipper left, or if there are no elements to the left, go to the far right.
 --
@@ -303,8 +302,9 @@ moveLeftLoop ::
   ListZipper a
   -> ListZipper a
 moveLeftLoop (ListZipper Nil x r) =
-  let (x' :. l') = reverse $ x :. r
-   in ListZipper l' x' Nil
+  case reverse (x :. r) of
+    (x' :. l') -> ListZipper l' x' Nil
+    Nil -> error "Impossible"
 moveLeftLoop (ListZipper (l :. ls) x r) =
   ListZipper ls l $ x :. r
 
@@ -319,8 +319,9 @@ moveRightLoop ::
   ListZipper a
   -> ListZipper a
 moveRightLoop (ListZipper l x Nil) =
-  let (x' :. r') = reverse $ x :. l
-   in ListZipper Nil x' r'
+  case reverse (x :. l) of
+    (x' :. r') -> ListZipper Nil x' r'
+    Nil -> error "Impossible"
 moveRightLoop (ListZipper l x (r :. rs)) =
   ListZipper (x :. l) r rs
 

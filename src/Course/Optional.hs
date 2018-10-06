@@ -44,7 +44,7 @@ bindOptional ::
   (a -> Optional b)
   -> Optional a
   -> Optional b
-bindOptional f Empty = Empty
+bindOptional _ Empty = Empty
 bindOptional f (Full x) = f x
 
 -- | Return the possible value if it exists; otherwise, the second argument.

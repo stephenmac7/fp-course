@@ -174,6 +174,13 @@ left ++ right =
 
 infixr 5 ++
 
+prependRev ::
+  List a
+  -> List a
+  -> List a
+prependRev l r =
+  foldLeft (flip (:.)) r l
+
 -- | Flatten a list of lists to a list.
 --
 -- >>> flatten ((1 :. 2 :. 3 :. Nil) :. (4 :. 5 :. 6 :. Nil) :. (7 :. 8 :. 9 :. Nil) :. Nil)
