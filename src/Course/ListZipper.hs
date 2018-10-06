@@ -234,8 +234,8 @@ hasRight ::
 hasRight (ListZipper _ _ Nil) = False
 hasRight _ = True
 
--- | Seek to the left for a location matching a predicate, starting from the
--- current one.
+-- | Seek to the left for a location matching a predicate, excluding the
+-- focus.
 --
 -- /Tip:/ Use `break`
 --
@@ -265,8 +265,8 @@ findLeft p (ListZipper l x r) =
       Nil -> IsNotZ
       (y' :. ys) -> IsZ $ ListZipper ys y' (reverse n ++ x :. r)
     
--- | Seek to the right for a location matching a predicate, starting from the
--- current one.
+-- | Seek to the right for a location matching a predicate, excluding the
+-- focus.
 --
 -- /Tip:/ Use `break`
 --
@@ -533,7 +533,7 @@ nth i z
 -- >>> index (zipper [3,2,1] 4 [5,6,7])
 -- 3
 --
--- prop> \i z z' -> optional True (\z' -> index z' == i) (toOptional (nth i z))
+-- prop> \i z -> optional True (\z' -> index z' == i) (toOptional (nth i z))
 index ::
   ListZipper a
   -> Int
